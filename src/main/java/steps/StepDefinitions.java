@@ -63,7 +63,7 @@ public class StepDefinitions {
 
     @Then("I should save it to my spreadsheet")
     public void saveToSheet() throws IOException {
-        FileInputStream file = new FileInputStream("C:\\Users\\borda\\Documents\\NBS automatizacija task\\CurrencyTamplate.xlsx");
+        FileInputStream file = new FileInputStream("src/main/resources/CurrencyTamplate.xlsx");
         XSSFWorkbook workbook = new XSSFWorkbook(file);
         XSSFSheet sheet = workbook.getSheetAt(0);
 
@@ -87,7 +87,7 @@ public class StepDefinitions {
                 }
             }
         });
-        FileOutputStream out = new FileOutputStream("C:\\Users\\borda\\Documents\\NBS automatizacija task\\CurrencyTamplate.xlsx");
+        FileOutputStream out = new FileOutputStream("src/main/resources/CurrencyTamplate.xlsx");
         workbook.write(out);
         out.close();
     }
