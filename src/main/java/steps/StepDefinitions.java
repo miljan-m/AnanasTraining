@@ -2,6 +2,7 @@ package steps;
 
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -19,76 +20,67 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import utils.ExcelUtility;
 
 import java.io.*;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StepDefinitions {
-    private WebDriver webDriver;
-    private Map<String, String> rates = new HashMap<>();
+    private final WebDriver webDriver = Hooks.getWebDriver();
+    private final Map<String, String> rates = new HashMap<>();
 
-    @Before
-    public void setup() {
-        WebDriverManager.chromedriver().setup();
-
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-notifications");
-
-        webDriver = new ChromeDriver(options);
-
-        webDriver.manage().window().maximize();
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10L));
+    @Given("I am on page {string}")
+    public void goToPage(String URL) {
+        webDriver.get(URL);
     }
 
-    @After
-    public void close() {
-        webDriver.quit();
-    }
-
-    @Given("I am on the RSD exchange rate page")
-    public void goToRSDPage() {
-        webDriver.get("https://www.nbs.rs/sr_RS/finansijsko_trziste/medjubankarsko-devizno-trziste/kursna-lista/zvanicni-srednji-kurs-dinara/index.html");
-    }
-
-    @When("I take the average exchange rate for USD, EUR, RUB")
-    public void getRates() {
+    @When("I take the exchange rate for all currencies from table {string}")
+    public void getRates(String tableName) {
         webDriver.switchTo().frame("frameId");
-        List<WebElement> rateTableRows = webDriver.findElements(By.xpath("//table[@id='index:srednjiKursLista']/tbody/tr"));
+
+        List<WebElement> rateTableRows = webDriver.findElements(By.xpath("//table[@id='index:" + tableName + "']/tbody/tr"));
         rateTableRows.forEach(row -> {
-            rates.put(row.findElement(By.cssSelector("td:nth-child(1)")).getText(), row.findElement(By.cssSelector("td:nth-child(5)")).getText());
+            String currencySymbol = row.findElement(By.cssSelector("td:nth-child(1)")).getText();
+            String exchangeRate = row.findElement(By.cssSelector("td:nth-child(5)")).getText();
+            rates.put(currencySymbol, exchangeRate);
         });
         System.out.println(rates);
+
+        webDriver.switchTo().defaultContent();
     }
 
-    @Then("I should save it to my spreadsheet")
-    public void saveToSheet() throws IOException {
-        FileInputStream file = new FileInputStream("src/main/resources/CurrencyTamplate.xlsx");
-        XSSFWorkbook workbook = new XSSFWorkbook(file);
-        XSSFSheet sheet = workbook.getSheetAt(0);
+    @Then("I save the results based on template {string}")
+    public void saveToSheet(String template) throws IOException {
+        ExcelUtility.saveResultsBasedOnTemplate(rates, "src/main/resources/templates/" + template);
+    }
 
-        rates.forEach((key, value) -> {
-            Cell cell;
-            switch (key) {
-                case "USD": {
-                    cell = sheet.getRow(1).createCell(2);
-                    cell.setCellValue(value);
-                    break;
-                }
-                case "EUR": {
-                    cell = sheet.getRow(2).createCell(2);
-                    cell.setCellValue(value);
-                    break;
-                }
-                case "RUB": {
-                    cell = sheet.getRow(3).createCell(2);
-                    cell.setCellValue(value);
-                    break;
-                }
+    @When("I navigate to the exchange rates by day filter page")
+    public void iNavigateToExchangeRatesByDayFilterPage() {
+        webDriver.findElement(By.xpath("//a[contains(text(),'Курсна листа НБС')]")).click();
+        webDriver.findElement(By.xpath("//a[contains(text(),'На жељени дан')]")).click();
+    }
+
+    @And("I input the previous work day and show the list")
+    public void iInputThePreviousWorkDayAndShowTheList() {
+        webDriver.switchTo().frame("frameId");
+        webDriver.findElement(By.xpath("//input[@id='index:inputCalendar1']")).click();
+
+        List<WebElement> daysBeforeToday = webDriver.findElements(By.xpath("//div[@class='dhtmlxcalendar_dates_cont']/ul/li"))
+                .stream().takeWhile(day -> !day.getAttribute("class").endsWith("date"))
+                .collect(Collectors.toList());
+
+        WebElement lastWorkDay;
+        for (int i = daysBeforeToday.size()-1; i >= 0; i--) {
+            if (!daysBeforeToday.get(i).getAttribute("class").endsWith("weekend")) {
+                lastWorkDay = daysBeforeToday.get(i);
+                lastWorkDay.click();
+                break;
             }
-        });
-        FileOutputStream out = new FileOutputStream("src/main/resources/CurrencyTamplate.xlsx");
-        workbook.write(out);
-        out.close();
+        }
+
+        webDriver.findElement(By.xpath("//button[@id='index:buttonShow']")).click();
+        webDriver.switchTo().defaultContent();
     }
 }
