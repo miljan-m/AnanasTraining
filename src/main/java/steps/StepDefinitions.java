@@ -1,46 +1,36 @@
 package steps;
 
-import io.cucumber.java.After;
-import io.cucumber.java.Before;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import org.apache.poi.*;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.interactions.Actions;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
-import utils.ExcelUtility;
+import utils.selectors.xpath.XPathHelper;
+import utils.excel.ExcelUtility;
 
 import java.io.*;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class StepDefinitions {
     private final WebDriver webDriver = Hooks.getWebDriver();
     private final Map<String, String> rates = new HashMap<>();
+    private final XPathHelper xPathHelper = new XPathHelper();
 
     @Given("I am on page {string}")
     public void goToPage(String URL) {
         webDriver.get(URL);
     }
 
-    @When("I take the exchange rate for all currencies from table {string}")
+    @When("I take the exchange rates for all currencies from table {string}")
     public void getRates(String tableName) {
         webDriver.switchTo().frame("frameId");
 
-        List<WebElement> rateTableRows = webDriver.findElements(By.xpath("//table[@id='index:" + tableName + "']/tbody/tr"));
+        //table[@id='index:" + tableName + "']/tbody/tr
+        List<WebElement> rateTableRows = xPathHelper.find("table", "id", "index:" + tableName).find("tbody").find("tr").buildElements();
         rateTableRows.forEach(row -> {
             String currencySymbol = row.findElement(By.cssSelector("td:nth-child(1)")).getText();
             String exchangeRate = row.findElement(By.cssSelector("td:nth-child(5)")).getText();
@@ -58,16 +48,17 @@ public class StepDefinitions {
 
     @When("I navigate to the exchange rates by day filter page")
     public void iNavigateToExchangeRatesByDayFilterPage() {
-        webDriver.findElement(By.xpath("//a[contains(text(),'Курсна листа НБС')]")).click();
-        webDriver.findElement(By.xpath("//a[contains(text(),'На жељени дан')]")).click();
+        xPathHelper.findWithFunction("a", "contains", "text()", "'Курсна листа НБС'").buildElement().click();
+        xPathHelper.findWithFunction("a", "contains", "text()", "'На жељени дан'").buildElement().click();
     }
 
     @And("I input the previous work day and show the list")
     public void iInputThePreviousWorkDayAndShowTheList() {
         webDriver.switchTo().frame("frameId");
-        webDriver.findElement(By.xpath("//input[@id='index:inputCalendar1']")).click();
 
-        List<WebElement> daysBeforeToday = webDriver.findElements(By.xpath("//div[@class='dhtmlxcalendar_dates_cont']/ul/li"))
+        xPathHelper.find("input", "id", "index:inputCalendar1").buildElement().click();
+
+        List<WebElement> daysBeforeToday = xPathHelper.find("div", "class", "dhtmlxcalendar_dates_cont").find("ul").find("li").buildElements()
                 .stream().takeWhile(day -> !day.getAttribute("class").endsWith("date"))
                 .collect(Collectors.toList());
 
@@ -80,7 +71,7 @@ public class StepDefinitions {
             }
         }
 
-        webDriver.findElement(By.xpath("//button[@id='index:buttonShow']")).click();
+        xPathHelper.find("button", "id", "index:buttonShow").buildElement().click();
         webDriver.switchTo().defaultContent();
     }
 }
