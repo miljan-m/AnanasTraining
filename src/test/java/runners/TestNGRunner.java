@@ -5,7 +5,6 @@ import io.cucumber.testng.CucumberOptions;
 
 @CucumberOptions
         (features = "src/test/resources/features/",
-        tags = "not @AverageRate",
         glue = {"steps"})
 
 public class TestNGRunner extends AbstractTestNGCucumberTests {

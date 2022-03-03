@@ -5,12 +5,19 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import steps.Hooks;
+import utils.selectors.css.CSSHelper;
 
 import java.util.List;
 
 public class XPathHelper {
     private final WebDriver webDriver = Hooks.getWebDriver();
     private String path = "/";
+    private WebElement parent = null;
+
+    public XPathHelper withParent(WebElement parent) {
+        this.parent = parent;
+        return this;
+    }
 
     public XPathHelper find(String element) {
         this.path += String.format("/%s", element);
@@ -38,12 +45,24 @@ public class XPathHelper {
     }
 
     public WebElement buildElement() {
+        if (this.parent != null) {
+            WebElement element = this.parent.findElement(By.xpath(this.path));
+            this.parent = null;
+            this.path = "";
+            return element;
+        }
         WebElement element = webDriver.findElement(By.xpath(this.path));
         this.path = "/";
         return element;
     }
 
     public List<WebElement> buildElements() {
+        if (this.parent != null) {
+            List<WebElement> elements = this.parent.findElements(By.xpath(this.path));
+            this.parent = null;
+            this.path = "";
+            return elements;
+        }
         List<WebElement> elements = webDriver.findElements(By.xpath(this.path));
         this.path = "/";
         return elements;

@@ -8,6 +8,7 @@ import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import utils.selectors.css.CSSHelper;
 import utils.selectors.xpath.XPathHelper;
 import utils.excel.ExcelUtility;
 
@@ -19,22 +20,39 @@ public class StepDefinitions {
     private final WebDriver webDriver = Hooks.getWebDriver();
     private final Map<String, String> rates = new HashMap<>();
     private final XPathHelper xPathHelper = new XPathHelper();
+    private final CSSHelper cssHelper = new CSSHelper();
 
     @Given("I am on page {string}")
     public void goToPage(String URL) {
         webDriver.get(URL);
     }
 
-    @When("I take the exchange rates for all currencies from table {string}")
-    public void getRates(String tableName) {
+    @When("I take the average exchange rates for all currencies from table {string}")
+    public void getAverageRates(String tableName) {
         webDriver.switchTo().frame("frameId");
 
-        //table[@id='index:" + tableName + "']/tbody/tr
-        List<WebElement> rateTableRows = xPathHelper.find("table", "id", "index:" + tableName).find("tbody").find("tr").buildElements();
+        //table[@id='index:srednjiKurs']/tbody/tr
+        List<WebElement> rateTableRows = xPathHelper.find("table", "id", tableName).find("tbody").find("tr").buildElements();
         rateTableRows.forEach(row -> {
-            String currencySymbol = row.findElement(By.cssSelector("td:nth-child(1)")).getText();
-            String exchangeRate = row.findElement(By.cssSelector("td:nth-child(5)")).getText();
+            String currencySymbol = cssHelper.withParent(row).element("td").pseudoClass("nth-child(1)").buildElement().getText();
+            String exchangeRate = cssHelper.withParent(row).element("td").pseudoClass("nth-child(5)").buildElement().getText();
             rates.put(currencySymbol, exchangeRate);
+        });
+        System.out.println(rates);
+
+        webDriver.switchTo().defaultContent();
+    }
+
+    @When("I take the buying and selling exchange rates for all currencies from table {string}")
+    public void getBuyingAndSellingRates(String tableName) {
+        webDriver.switchTo().frame("frameId");
+
+        List<WebElement> rateTableRows = xPathHelper.find("table", "id", tableName).find("tbody").find("tr").buildElements();
+        rateTableRows.forEach(row -> {
+            String currencySymbol = cssHelper.withParent(row).element("td").pseudoClass("nth-child(1)").buildElement().getText();
+            String buyingRate = cssHelper.withParent(row).element("td").pseudoClass("nth-child(5)").buildElement().getText();
+            String sellingRate = cssHelper.withParent(row).element("td").pseudoClass("nth-child(6)").buildElement().getText();
+            rates.put(currencySymbol, buyingRate+";"+sellingRate);
         });
         System.out.println(rates);
 
@@ -55,7 +73,6 @@ public class StepDefinitions {
     @And("I input the previous work day and show the list")
     public void iInputThePreviousWorkDayAndShowTheList() {
         webDriver.switchTo().frame("frameId");
-
         xPathHelper.find("input", "id", "index:inputCalendar1").buildElement().click();
 
         List<WebElement> daysBeforeToday = xPathHelper.find("div", "class", "dhtmlxcalendar_dates_cont").find("ul").find("li").buildElements()

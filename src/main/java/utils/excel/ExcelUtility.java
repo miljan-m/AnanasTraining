@@ -24,8 +24,12 @@ public class ExcelUtility {
         Map<String, Integer> currenciesWithRowNums = getCurrenciesWithRowNumsFromTemplate(sheet);
 
         currenciesWithRowNums.forEach((currency, rowNum) -> {
-            Cell cell = sheet.getRow(rowNum).createCell(2);
-            cell.setCellValue(allCurrencies.getOrDefault(currency, "N/A"));
+            int i = 0;
+            for (String value : allCurrencies.getOrDefault(currency, "N/A").split(";")) {
+                Cell cell = sheet.getRow(rowNum).createCell(i + 2);
+                cell.setCellValue(value);
+                i++;
+            }
         });
 
         LocalDateTime dateTime = LocalDateTime.now();
