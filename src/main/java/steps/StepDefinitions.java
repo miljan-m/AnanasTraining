@@ -5,6 +5,7 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jdbc.Statements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -60,7 +61,7 @@ public class StepDefinitions {
     }
 
     @Then("I save the results based on template {string}")
-    public void saveToSheet(String template) throws IOException {
+    public void saveResults(String template) throws IOException {
         ExcelUtility.saveResultsBasedOnTemplate(rates, "src/main/resources/templates/" + template);
     }
 
@@ -90,5 +91,15 @@ public class StepDefinitions {
 
         xPathHelper.find("button", "id", "index:buttonShow").buildElement().click();
         webDriver.switchTo().defaultContent();
+    }
+
+    @And("I save the average rates to a database")
+    public void iSaveTheAverageRatesToADatabase() {
+        Statements.insertAverageRates(rates);
+    }
+
+    @And("I save the buy and sell rates to a database")
+    public void iSaveTheBuyAndSellRatesToADatabase() {
+        Statements.insertBuyAndSellRates(rates);
     }
 }
