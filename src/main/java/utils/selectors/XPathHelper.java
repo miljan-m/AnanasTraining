@@ -1,11 +1,9 @@
-package utils.selectors.xpath;
+package utils.selectors;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import steps.Hooks;
-import utils.selectors.css.CSSHelper;
 
 import java.util.List;
 

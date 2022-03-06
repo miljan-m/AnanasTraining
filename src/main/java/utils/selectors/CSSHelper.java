@@ -1,4 +1,4 @@
-package utils.selectors.css;
+package utils.selectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

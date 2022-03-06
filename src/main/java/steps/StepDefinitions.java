@@ -1,16 +1,15 @@
 package steps;
 
-import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import jdbc.Statements;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import utils.selectors.css.CSSHelper;
-import utils.selectors.xpath.XPathHelper;
+import utils.logging.Log;
+import utils.selectors.CSSHelper;
+import utils.selectors.XPathHelper;
 import utils.excel.ExcelUtility;
 
 import java.io.*;
@@ -26,6 +25,7 @@ public class StepDefinitions {
     @Given("I am on page {string}")
     public void goToPage(String URL) {
         webDriver.get(URL);
+        Log.info("I went to " + URL + " !!!");
     }
 
     @When("I take the average exchange rates for all currencies from table {string}")
