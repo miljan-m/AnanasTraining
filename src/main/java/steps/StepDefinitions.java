@@ -25,7 +25,6 @@ public class StepDefinitions {
     @Given("I am on page {string}")
     public void goToPage(String URL) {
         webDriver.get(URL);
-        Log.info("I went to " + URL + " !!!");
     }
 
     @When("I take the average exchange rates for all currencies from table {string}")
@@ -80,17 +79,25 @@ public class StepDefinitions {
                 .stream().takeWhile(day -> !day.getAttribute("class").endsWith("date"))
                 .collect(Collectors.toList());
 
-        WebElement lastWorkDay;
-        for (int i = daysBeforeToday.size()-1; i >= 0; i--) {
-            if (!daysBeforeToday.get(i).getAttribute("class").endsWith("weekend")) {
-                lastWorkDay = daysBeforeToday.get(i);
-                lastWorkDay.click();
-                break;
-            }
-        }
+        WebElement lastWorkDay = findLastWorkDay(daysBeforeToday);
+        if (lastWorkDay != null) lastWorkDay.click();
 
         xPathHelper.find("button", "id", "index:buttonShow").buildElement().click();
         webDriver.switchTo().defaultContent();
+    }
+
+    private WebElement findLastWorkDay(List<WebElement> days) {
+        for (int i = days.size()-1; i >= 0; i--) {
+            WebElement day = days.get(i);
+            if (!isWeekend(day)) {
+                return day;
+            }
+        }
+        return null;
+    }
+
+    private boolean isWeekend(WebElement day) {
+        return day.getAttribute("class").endsWith("weekend");
     }
 
     @And("I save the average rates to a database")

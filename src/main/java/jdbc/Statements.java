@@ -5,7 +5,15 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 public class Statements {
-    private static final Connection connection = H2Config.getConnection();
+    private static Connection connection;
+
+    static {
+        try {
+            connection = H2Config.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void insertAverageRates(Map<String, String> rates) {
         String query = "INSERT INTO AVERAGE_RATES(CURRENCY_SYMBOL, AVERAGE_RATE, CREATED_AT) VALUES (?, ?, ?)";

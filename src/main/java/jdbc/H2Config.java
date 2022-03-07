@@ -1,21 +1,21 @@
 package jdbc;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class H2Config {
-    private static Connection connection;
+    private static BasicDataSource dataSource;
 
-    public static Connection getConnection() {
-        String url = "jdbc:h2:tcp://localhost:9092/~/tmp/h2dbs/testdb";
-        String user = "sa";
-        String password = "";
-        try {
-            connection = DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public static Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            dataSource = new BasicDataSource();
+            dataSource.setUrl("jdbc:h2:tcp://localhost:9092/~/tmp/h2dbs/testdb");
+            dataSource.setDriverClassName("org.h2.Driver");
+            dataSource.setUsername("sa");
+            dataSource.setPassword("");
         }
-        return connection;
+        return dataSource.getConnection();
     }
 }
