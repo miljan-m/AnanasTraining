@@ -2,6 +2,7 @@ package steps;
 
 import io.cucumber.java.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import listeners.StepEventListener;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.OutputType;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 
 public class Hooks {
     private static WebDriver webDriver;
@@ -59,6 +61,24 @@ public class Hooks {
             FileUtils.copyFile(sourceFile, destinationFile);
         } catch (IOException exception) {
             exception.printStackTrace();
+        }
+    }
+
+    @AfterStep
+    public void logStep(Scenario scenario) {
+        String currentStepName = StepEventListener.getStepName();
+        List<String> currentStepArguments = StepEventListener.getStepArguments();
+        String currentStepCodeLocation = StepEventListener.getStepCodeLocation();
+        if (scenario.getStatus() == Status.FAILED) {
+            if (!currentStepArguments.isEmpty()) {
+                Log.info("Step failed: " + currentStepName + "; arguments = " + currentStepArguments + "; code_location = " + currentStepCodeLocation);
+            } else {
+                Log.info("Step failed: " + currentStepName + "; code_location = " + currentStepCodeLocation);
+            }
+        } else if (scenario.getStatus() == Status.PASSED) {
+            Log.info("Step: " + currentStepName);
+        } else if (scenario.getStatus() == Status.SKIPPED) {
+            Log.info("Step skipped: " + currentStepName);
         }
     }
 

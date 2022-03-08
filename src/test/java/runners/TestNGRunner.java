@@ -5,6 +5,7 @@ import io.cucumber.testng.CucumberOptions;
 
 @CucumberOptions
         (features = "src/test/resources/features/",
+        plugin = {"listeners.StepEventListener"},
         glue = {"steps"})
 
 public class TestNGRunner extends AbstractTestNGCucumberTests {
